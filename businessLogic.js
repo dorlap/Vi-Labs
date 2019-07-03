@@ -1,4 +1,4 @@
-const { isPrime, removeNonChars } = require('./utils');
+const { isPrime, removeNonChars, readFile } = require('./utils');
 const fs = require('fs');
 
 function buildDict(words) {
@@ -18,15 +18,6 @@ function buildDict(words) {
         obj.isPrime = isPrime(obj.count);
     }
     return dict;
-}
-
-function readFile(filePath) {
-    return new Promise((resolve, reject) => {
-        let words = [];
-        const readStream = fs.createReadStream(filePath);
-        readStream.on('data', chunk => words.push(chunk.toString()));
-        readStream.on('close', () => resolve(words.join(' ')));
-    });
 }
 
 module.exports.getWordList = filePath => {
