@@ -11,7 +11,7 @@ module.exports.isPrime = num => {
     return true;
 }
 
-module.exports.removeNonChars = (word, i) => {
+module.exports.removeNonChars = word => {
     const regex = /[_\W0-9]/g;
     let result = word.replace(regex, '');
     return result;

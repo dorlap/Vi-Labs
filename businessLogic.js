@@ -3,7 +3,7 @@ const fs = require('fs');
 
 function buildDict(words) {
     const dict = {};
-    words.forEach((word, i) => {
+    words.forEach(word => {
         if (word) {
             word = word.toLowerCase();
             let obj = dict[word];
@@ -20,12 +20,45 @@ function buildDict(words) {
     return dict;
 }
 
+function readFile(filePath) {
+    return new Promise((resolve, reject) => {
+        let words = [];
+        const readStream = fs.createReadStream(filePath);
+        readStream.on('data', chunk => words.push(chunk.toString()));
+        readStream.on('close', () => resolve(words.join(' ')));
+    });
+}
+
 module.exports.getWordList = filePath => {
     if (fs.existsSync(filePath)) {
         const txt = fs.readFileSync(filePath, 'utf8');
         const words = txt.split(/[\s]/).map(removeNonChars);
         const dict = buildDict(words);
         return Object.values(dict)
+    } else {
+        throw new Error('File not found');
+    }
+}
+
+const dictOf = {};
+module.exports.getWordListV2 = async filePath => {
+    if (fs.existsSync(filePath)) {
+        dictOf[filePath] = dictOf[filePath] || {};
+        const { promise, dict } = dictOf[filePath];
+        if (!promise && !dict) {
+            let resolver;
+            dictOf[filePath].promise = new Promise((resolve) => resolver = resolve);
+            const txt = await readFile(filePath);
+            const words = txt.split(/[\s]/).map(removeNonChars)
+            const dict = buildDict(words)
+            const res = dictOf[filePath].dict = Object.values(dict);
+            setTimeout(() => resolver(res));
+            return res;
+        } else if (dict) {
+            return dict;
+        } else {
+            return await promise;
+        }
     } else {
         throw new Error('File not found');
     }
